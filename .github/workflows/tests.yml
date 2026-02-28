@@ -15,19 +15,17 @@ jobs:
 
       - name: Build and Run Docker
         run: |
-          # 1. Start the containers
-          docker-compose up -d --build
+          # Use 'docker compose' instead of 'docker-compose'
+          docker compose up -d --build
 
-          # 2. Hard sleep to allow the entrypoint scripts (01.sql, 02.sql) to finish.
-          # Loading data.sql can take a few seconds.
-          sleep 30
+          # Give the database and initialization scripts time to run
+          # Since you are copying large .sql files, let's give it 40 seconds
+          sleep 40
 
-          # 3. Check if the database exists and count actors
-          # We use -U postgres (from your docker-compose env) 
-          # We try the 'postgres' database first to verify connectivity
-          docker-compose exec -T pg psql -U postgres -d postgres -c "SELECT 1;"
+          # Check container status
+          docker ps -a
 
-          # 4. Verification of Pagila data
-          # Note: If your .sql files create a database named 'pagila', 
-          # change '-d postgres' to '-d pagila' below.
-          docker-compose exec -T pg psql -U postgres -d postgres -c "SELECT count(*) FROM actor;"
+          # Run the test query
+          # Note: your docker-compose environment says password is 'pass'
+          # We use the 'postgres' database which is created by default
+          docker compose exec -T pg psql -U postgres -d postgres -c "SELECT count(*) FROM actor;"
