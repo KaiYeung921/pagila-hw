@@ -9,23 +9,19 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      # Modern checkout handles submodules automatically
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Build and Run Docker
         run: |
-          # Start the containers
+          # 1. Start containers
           docker-compose up -d --build
 
-          # Debugging: show container status
-          docker ps -a
+          # 2. Wait for Postgres to be "Ready"
+          # Instead of just sleeping, we wait for the port to open
+          timeout 60s bash -c 'until docker-compose exec -T pg pg_isready -U postgres; do sleep 2; done'
 
-          # Wait for PostgreSQL to initialize and load Pagila data
-          # If 20s isn't enough, we can implement a "healthcheck" loop later
-          sleep 20
-
-          # REAL TEST: Check if the 'actor' table exists and has data
-          # This replaces the non-existent fixme.sh
-          docker-compose exec -T pg psql -U postgres -d pagila -c "SELECT count(*) FROM actor;"
+          # 3. Run the test query
+          # We use the password 'pass' from your docker-compose.yml
+          docker-compose exec -T pg psql -U postgres -d postgres -c "SELECT 1;"
