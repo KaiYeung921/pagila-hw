@@ -1,11 +1,25 @@
 /*
  * Use a JOIN to count the number films in the specified category.
  * Use table category, film_category, and film.
+
+category: category_id, name
+film_catL film_id, category_id
+film: title, film_idx
+
  */
 
 CREATE OR REPLACE FUNCTION list_category(TEXT) RETURNS TABLE(title TEXT) AS
 $$
--- FIXME: implementation goes here
+
+SELECT f.title
+    FROM film AS f
+    JOIN film_category AS fc ON f.film_id = fc.film_id
+    JOIN category AS c ON fc.category_id = c.category_id
+    WHERE c.name = $1
+    ORDER BY f.title ASC;
+
+
+
 $$
 LANGUAGE SQL
 IMMUTABLE
